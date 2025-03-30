@@ -1,5 +1,6 @@
+/* 
 body {
-    background: linear-gradient(135deg, #65d3e9, #4fa3d1); /* Fondo con gradiente */
+    background: linear-gradient(135deg, #65d3e9, #4fa3d1); /* Fondo con gradiente 
     display: flex;
     justify-content: center;
     align-items: center;
@@ -22,7 +23,7 @@ form {
     align-items: center;
     padding: 30px;
     border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Sombra suave 
     width: 100%;
     max-width: 500px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -35,7 +36,7 @@ form {
     align-items: center;
     padding: 30px;
     border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Sombra suave 
     width: 100%;
     max-width: 700px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -56,12 +57,12 @@ h3 {
     justify-content: space-between;
     width: 100%;
     margin-bottom: 15px;
-    flex-wrap: wrap; /* Para que los elementos se ajusten en pantallas pequeñas */
+    flex-wrap: wrap; /* Para que los elementos se ajusten en pantallas pequeñas 
 }
 .row-div{
     margin-left: 600px;
     margin-bottom: 15px;
-    flex-wrap: wrap; /* Para que los elementos se ajusten en pantallas pequeñas */
+    flex-wrap: wrap; /* Para que los elementos se ajusten en pantallas pequeñas 
 }
 
 .row > div {
@@ -95,7 +96,7 @@ input[type="file"] {
 input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="file"]:focus {
-    border-color: #65d3e9; /* Cambio de color al enfocar */
+    border-color: #65d3e9; /* Cambio de color al enfocar 
     outline: none;
 }
 
@@ -192,7 +193,7 @@ button[type="submit"] {
 
 button[type="submit"]:hover {
     background-color: #4fa3d1;
-    transform: scale(1.05); /* Efecto de escala al pasar el mouse */
+    transform: scale(1.05); /* Efecto de escala al pasar el mouse 
 }
 
 button[type="button"] {
@@ -223,4 +224,9 @@ button[type="button"]:hover {
         width: 100%;
         margin-bottom: 10px;
     }
+} 
+*/
+*{
+    padding: 0;
+    margin: 0;
 }

@@ -1,21 +1,43 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import ReactDOM from 'react-dom';
+
+import { ThemeProvider,createTheme } from '@material-ui/core';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { App } from './components/App';
-import { Delete } from './components/Delete';
 import { Users } from './components/Users';
-import { Update } from './components/Update';
+import { Login } from './components/Login';
 import './index.css'
 
-const root = ReactDOM.createRoot(document.getElementById('root'))
+const theme = createTheme({
+  spacing: 2,
+  palette: {
+    primary: {main: '#FF8C00', light: '#fff', dark: '#CC5500', contrastText: '#000',  },
+    secondary: {main: '#CC5500', light: '#C19A6B', dark: '#CC5500', contrastText: '#C19A6B', },
+    black: {main: '#000', light: '#fff', dark: '#000', contrastText: '#fff', },
+    white: {main: '#fff', light: '#000', dark: '#fff', contrastText: '#000'  }
+  }
+})
 
-root.render(
-  <Router>
-    <Routes>
-      <Route path="/" element = {<App/>}/>
-      <Route path="/delete" element={<Delete/>}/>
-      <Route path="/users" element={<Users/>}/>
-      <Route path="/update" element={<Update/>}/>
-    </Routes>
-  </Router>
-)
+// Función para verificar autenticación
+const isAuthenticated = () => {
+  return localStorage.getItem("token") !== null; // Retorna true si hay un token
+};
+
+ReactDOM.render(
+  
+  <ThemeProvider theme={theme}>
+    <Router>
+      <Routes>
+        
+        <Route path="/" element = {<App/>}/>
+        <Route path="/login" element={<Login/>} /> 
+        <Route path="/users" element={isAuthenticated() ? <Users /> : <Navigate to="/login" />} />
+      </Routes>
+    </Router>
+  </ThemeProvider>,
+  document.getElementById('root')
+
+);
+
+
+
