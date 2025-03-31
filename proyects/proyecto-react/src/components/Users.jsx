@@ -1,6 +1,7 @@
 import React from "react";
 import { TableContainer,Table,TableHead,TableRow,TableCell,TableBody,AppBar, Button, Box, Grid, TextField, Typography, Dialog,DialogTitle,DialogContent, Checkbox, FormControlLabel, ButtonGroup, Toolbar } from '@material-ui/core';
 
+import { BlobServiceClient } from '@azure/storage-blob';
 import img from '../img/loginBackground.png';
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
@@ -10,6 +11,10 @@ import { ThemeProvider } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
+
+const SAS_TOKEN = "sv=2024-11-04&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2025-04-05T06:54:10Z&st=2025-03-30T22:54:10Z&spr=https,http&sig=zXqZGeGOy0R%2FTwUUCmnUBpuOXhMshF77Pd1%2FA7SyIY8%3D";
+const STORAGE_URL = "https://storagalmacenamiento.blob.core.windows.net";
+const CONTAINER_NAME = "imagescontainer";
 
 const theme = createTheme({
     palette: {
@@ -33,24 +38,16 @@ const theme = createTheme({
 export function Users () {
     const classes = useStyles();
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+    const [previewImage, setPreviewImage] = useState(null);
 
-    // Cerrar sesion
-    const handleLogout = () => {
-      localStorage.removeItem("token"); // Elimina el token
-      navigate("/login"); // Redirige al login
-    };
-
-    //imagen
-    const handleFileChange = (event) => {
-        const file = event.target.files[0];
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setFormState({ ...formState, urlFoto: reader.result });  // Guarda la imagen como Base64 en formState
-        };
-        if (file) {
-          reader.readAsDataURL(file); 
-        }
-      };
+    const handleVolver = () => {
+        navigate('/');
+    }
+    const handleRegistrar = () => {
+        navigate('/users');
+    }
+   
 
     //ingresar
     const [formState, setFormState] = useState({
@@ -66,12 +63,51 @@ export function Users () {
         nTelefonico:"",
         urlFoto:"",
     })
-
     // editar evento
     const handleInputChange = (event)=>{
-        const {name, value}= event.target;
-        setFormState({...formState, [name]:value})
-      }
+      const {name, value}= event.target;
+      setFormState({...formState, [name]:value})
+    }
+
+     //imagen
+
+    const uploadImageAzure = async (file) => {
+        if(!file) return;
+
+        setLoading(true);
+
+        const blobServiceClient = new BlobServiceClient(`${STORAGE_URL}/?${SAS_TOKEN}`)
+        const containerClient = blobServiceClient.getContainerClient(CONTAINER_NAME);
+        const blobName = `${Date.now()}-${file.name}`;
+        const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+        try{
+            await blockBlobClient.uploadData(file, {
+                blobHTTPHeaders: { blobContentType: file.type },
+            });
+
+            const imageUrl = `${STORAGE_URL}/${CONTAINER_NAME}/${blobName}?${SAS_TOKEN}`;
+            setFormState((prevState) => ({ ...prevState, urlFoto: imageUrl}));
+            setPreviewImage(imageUrl);
+            console.log("Imagen subida con éxito: ", imageUrl);
+            console.log(blockBlobClient);
+        } catch (error) {
+            console.error("Error al cargar la imagen: ", error);
+            console.log(blockBlobClient);
+        } finally {
+            setLoading(false);
+        }
+    }
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if (file){
+            const reader = new FileReader();
+            reader.onload = () => setPreviewImage(reader.result);
+            reader.readAsDataURL(file);
+
+            uploadImageAzure(file);
+        }
+    };
     
     const[modalEditar, setModalEditar]=useState(false)
     const abrirCerrarModal=()=>{
@@ -83,56 +119,63 @@ export function Users () {
         (caso==='editar')?setModalEditar(true):''
       }
   
-// actualizar evento
-  const updateLab = async (request, response) => {
-    try {
-      const url = `http://localhost:4000/User/SignUp/Actualizar/` + formState._id;
-      await axios.put(url, formState)
-        .then(response => {
-          var dataNueva = list;
-          dataNueva.map(item => {
-            if (formState.id === item.id) {
-              item.urlFoto = formState.urlFoto
-              item.pNombre = formState.pNombre
-              item.sNombre = formState.sNombre
-              item.pApellido = formState.pApellido
-              item.sApellido = formState.sApellido
-              item.nDocumento = formState.nDocumento
-              item.email = formState.email
-              item.contrasenia = formState.contrasenia
-              item.direccion = formState.direccion
-              item.nTelefonico = formState.nTelefonico
-            }
-            response();
-            if (confirm(setList(dataNueva)) === true) {
-              abrirCerrarModal();
-            }
 
-          })
-        })
-    } catch (error) {
-      console.error(error)
-    }
-  }
+        const updateLab = async(request, response) =>{
+          try {
+            const url =`http://localhost:4000/User/SignUp/Actualizar/`+formState._id;
+            await axios.put(url, formState)
+            .then(response=>{
+              var dataNueva = list;
+              dataNueva.map(item=>{
+                if(formState.id===item.id){
+                  item.urlFoto=formState.urlFoto
+                  item.pNombre=formState.pNombre
+                  item.sNombre=formState.sNombre
+                  item.pApellido=formState.pApellido    
+                  item.sApellido=formState.sApellido
+                  item.nDocumento=formState.nDocumento
+                  item.email=formState.email
+                  item.contrasenia=formState.contrasenia
+                  item.direccion=formState.direccion
+                  item.nTelefonico=formState.nTelefonico
+                }
+                response();
+                if(confirm(setList(dataNueva))===true){
+                  abrirCerrarModal();
+                }
+                
+              })
+            })
+          } catch (error) {
+            console.error(error)
+          }
+        }
     
- //eliminar
-  const deleteLab = (_id, nombre) => {
-    try {
-      if (confirm("ID QUE TENIA EL MODULO EN LA BASE DE DATOS: " + _id + " \nELIMINÓ EL usuario: " + nombre) === true) {
-        const url = "http://localhost:4000/User/SignUp/Eliminar/";
-        const response = axios.delete(url + _id);
-        console.log(response.data)
+
+
+
+    //eliminar
+
+
+    const deleteLab = (_id, nombre) =>{
+        try {
+          if(confirm( "ID QUE TENIA EL MODULO EN LA BASE DE DATOS: "+ _id +" \nELIMINÓ EL usuario: "+ nombre) ===true){
+            const url ="http://localhost:4000/User/SignUp/Eliminar/";
+            const response = axios.delete(url + _id);
+            console.log(response.data)
+          }
+  
+          
+        } catch (error) {
+          console.error(error)
+        }
       }
 
 
-    } catch (error) {
-      console.error(error)
-    }
-  }
     //
 
     const [list, setList]= useState([]);
-      
+ 
     const getLab = async() =>{
       try {
         const url ="http://localhost:4000/User/SignUp/Usuarios/all";
@@ -160,7 +203,7 @@ export function Users () {
                         <Grid container direction='row' justifyContent='flex-end'>
             
                             <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group">                                            
-                                <Button onClick={handleLogout}>Cerrar Sesion</Button>
+                                <Button onClick={handleVolver}>registar</Button>
                                 
                             </ButtonGroup>
                         </Grid>
@@ -354,23 +397,24 @@ export function Users () {
                                   <Grid item xs={12} sm={12}>
                                     <input
                                       accept="image/*"
-                                      id="urlFoto"
+                                      id="fileInput"
                                       type="file"
                                       style={{ display: 'none' }}
                                       onChange={handleFileChange}
                                     />
-                                    <label htmlFor="urlFoto">
+                                    <label htmlFor="fileInput">
                                       <Button variant="contained" color="primary" component="span">
                                         Editar Foto
                                       </Button>
                                     </label>
+                                    {previewImage && <img src={previewImage} alt="Vista previa" style={{ width: "100px", marginTop: "10px",}}/>} 
                                   </Grid>
 
                                 </Grid>                                
                                 <Grid container justifyContent='center'>
                                 <Grid item >
-                                    <Button type='submit' variant='contained' sx={{ mt: 3, mb: 2 }}  onClick={()=>updateLab()}>
-                                        actualizar
+                                    <Button type='submit' variant='contained' sx={{ mt: 3, mb: 2 }}  onClick={updateLab}>
+                                    {loading ? "Subiendo imagen..." : "Actualizar"}
                                     </Button>
                                     </Grid>
                                 </Grid>
@@ -380,4 +424,4 @@ export function Users () {
                 </Dialog>        
         </main>
     )
-  }
+}
