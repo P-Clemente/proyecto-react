@@ -52,7 +52,7 @@ export function App () {
         nDocumento:"",
         fNacimiento:"",
         email:"",
-        password:"",
+        contrasenia:"",
         direccion:"",
         nTelefonico:"",
         urlFoto:"",
@@ -62,29 +62,6 @@ export function App () {
         const {name, value}= event.target;
         setFormState({...formState, [name]:value})
     }
-    const createUser = async (event) =>{
-        event.preventDefault();
-        try{
-          const url = "http://localhost:4000/User/SignUp";
-          const response = await axios.post(url,formState)
-          if(response.status === 201){
-            alert("regitro exitoso");
-            navigate("/Login");
-            console.log(response)
-            }else{
-                alert("problemas")
-            }        
-        }
-      catch (error){
-        console.log(error)
-        }
-
-    }
-
-    const handleRegistrar = () => {
-        navigate('/users');
-    }
-
 
     const uploadImageAzure = async (file) => {
         if(!file) return;
@@ -103,7 +80,6 @@ export function App () {
 
             const imageUrl = `${STORAGE_URL}/${CONTAINER_NAME}/${blobName}?${SAS_TOKEN}`;
             setFormState((prevState) => ({ ...prevState, urlFoto: imageUrl}));
-            setPreviewImage(imageUrl);
             console.log("Imagen subida con éxito: ", imageUrl);
             console.log(blockBlobClient);
         } catch (error) {
@@ -117,12 +93,42 @@ export function App () {
         const file = event.target.files[0];
         if (file){
             const reader = new FileReader();
-            reader.onload = () => setPreviewImage(reader.result);
             reader.readAsDataURL(file);
 
             uploadImageAzure(file);
         }
     };
+
+    const createUser = async (event) =>{
+        event.preventDefault();
+        console.log("Datos enviados: ", formState);
+        
+        if(!formState.urlFoto) {
+            alert("Por favor, espere que cargue la imagen");
+            return;
+        }
+
+        try{
+          const url = "https://proyecto-nube-a6hffcf5h7d5a4d3.canadacentral-01.azurewebsites.net/User/SignUp";
+          const response = await axios.post(url,formState)
+          if(response.status === 201){
+            alert("regitro exitoso");
+            navigate("/Login");
+            console.log(response)
+            }else{
+                alert("problemas")
+            }        
+        }
+      catch (error){
+        console.log(error)
+        }
+
+    }
+
+    const handleRegistrar = () => {
+        navigate('/users');
+    }
+    
     return (
         <main  className={classes.main}>
             <ThemeProvider >
@@ -278,12 +284,12 @@ export function App () {
                                 <Grid item xs={12} sm={12}>
                                     <input
                                         accept="image/*"
-                                        id="urlFoto"
+                                        id="fileInput"
                                         type="file"
                                         style={{ display: 'none' }}
                                         onChange={handleFileChange}
                                     />
-                                    <label htmlFor="urlFoto">
+                                    <label htmlFor="fileInput">
                                         <Button variant="contained" color="primary" component="span">
                                             Subir Foto
                                         </Button>

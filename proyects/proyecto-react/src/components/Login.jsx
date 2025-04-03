@@ -48,13 +48,17 @@ const theme = createTheme({
         });
         
         try {
-            const url = "http://localhost:4000/User/SignIn"
+            const url = "https://proyecto-nube-a6hffcf5h7d5a4d3.canadacentral-01.azurewebsites.net/User/SignIn";
             const response = await axios.post(url,formState);
 
             if (response.data.token) {
                 localStorage.setItem("token", response.data.token); // Guardar token en localStorage
+                
                 alert("Login exitoso");
-                navigate("/users"); // Redirigir al Dashboard
+    
+                setTimeout(() => { // Asegurar que se actualiza el estado antes de redirigir
+                    navigate("/users");
+                }, 100);
             } else {
                 alert("Error en credenciales");
             }

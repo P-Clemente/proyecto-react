@@ -101,7 +101,7 @@ export function Users () {
         nDocumento:"",
         fNacimiento:"",
         email:"",
-        password:"",
+        contrasenia:"",
         direccion:"",
         nTelefonico:"",
         urlFoto:"",
@@ -117,43 +117,43 @@ export function Users () {
         (caso==='editar')?setModalEditar(true):''
       }
   
-// actualizar evento
-  const updateLab = async (request, response) => {
-    try {
-      const url = `http://localhost:4000/User/SignUp/Actualizar/` + formState._id;
-      await axios.put(url, formState)
-        .then(response => {
-          var dataNueva = list;
-          dataNueva.map(item => {
-            if (formState.id === item.id) {
-              item.urlFoto = formState.urlFoto
-              item.pNombre = formState.pNombre
-              item.sNombre = formState.sNombre
-              item.pApellido = formState.pApellido
-              item.sApellido = formState.sApellido
-              item.nDocumento = formState.nDocumento
-              item.email = formState.email
-              item.contrasenia = formState.contrasenia
-              item.direccion = formState.direccion
-              item.nTelefonico = formState.nTelefonico
-            }
-            response();
-            if (confirm(setList(dataNueva)) === true) {
-              abrirCerrarModal();
-            }
+    // actualizar evento
+    const updateLab = async (request, response) => {
+      try {
+        const url = `https://proyecto-nube-a6hffcf5h7d5a4d3.canadacentral-01.azurewebsites.net/User/SignUp/Actualizar/` + formState._id;
+        await axios.put(url, formState)
+          .then(response => {
+            var dataNueva = list;
+            dataNueva.map(item => {
+              if (formState.id === item.id) {
+                item.urlFoto = formState.urlFoto
+                item.pNombre = formState.pNombre
+                item.sNombre = formState.sNombre
+                item.pApellido = formState.pApellido
+                item.sApellido = formState.sApellido
+                item.nDocumento = formState.nDocumento
+                item.email = formState.email
+                item.contrasenia = formState.contrasenia
+                item.direccion = formState.direccion
+                item.nTelefonico = formState.nTelefonico
+              }
+              response();
+              if (confirm(setList(dataNueva)) === true) {
+                abrirCerrarModal();
+              }
 
+            })
           })
-        })
-    } catch (error) {
-      console.error(error)
+      } catch (error) {
+        console.error(error)
+      }
     }
-  }
     
  //eliminar
   const deleteLab = (_id, nombre) => {
     try {
       if (confirm("ID QUE TENIA EL MODULO EN LA BASE DE DATOS: " + _id + " \nELIMINÓ EL usuario: " + nombre) === true) {
-        const url = "http://localhost:4000/User/SignUp/Eliminar/";
+        const url = "https://proyecto-nube-a6hffcf5h7d5a4d3.canadacentral-01.azurewebsites.net/User/SignUp/Eliminar/";
         const response = axios.delete(url + _id);
         console.log(response.data)
       }
@@ -163,13 +163,12 @@ export function Users () {
       console.error(error)
     }
   }
-    //
 
-    const [list, setList]= useState([]);
+  const [list, setList]= useState([]);
       
     const getLab = async() =>{
       try {
-        const url ="http://localhost:4000/User/SignUp/Usuarios/all";
+        const url ="https://proyecto-nube-a6hffcf5h7d5a4d3.canadacentral-01.azurewebsites.net/User/SignUp/Usuarios/all";
         
         const response =  await axios.get(url);
         console.log(response)
@@ -388,12 +387,12 @@ export function Users () {
                                   <Grid item xs={12} sm={12}>
                                     <input
                                       accept="image/*"
-                                      id="urlFoto"
+                                      id="fileInput"
                                       type="file"
                                       style={{ display: 'none' }}
                                       onChange={handleFileChange}
                                     />
-                                    <label htmlFor="urlFoto">
+                                    <label htmlFor="fileInput">
                                       <Button variant="contained" color="primary" component="span">
                                         Editar Foto
                                       </Button>
