@@ -1,6 +1,7 @@
 
 import { AppBar, Button, Box, Grid, TextField, ButtonGroup, Toolbar, Typography } from '@material-ui/core';
 import MenuIcon from '@material-ui/icons/Menu';
+import { BlobServiceClient } from '@azure/storage-blob';
 
 import axios from 'axios';
 
@@ -11,6 +12,9 @@ import { createTheme } from '@material-ui/core';
 import { ThemeProvider } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
+const SAS_TOKEN = "sv=2024-11-04&ss=bfqt&srt=co&sp=rwdlacupiytfx&se=2025-04-30T09:36:35Z&st=2025-04-03T01:36:35Z&spr=https,http&sig=UgHmQmeBAJDjvrS8zCFBPXpSCYDNDaCTajowdLQrfso%3D";
+const STORAGE_URL = "https://storagalmacenamiento.blob.core.windows.net";
+const CONTAINER_NAME = "imagescontainer";
 
 const theme = createTheme({
     palette: {
@@ -35,6 +39,7 @@ const theme = createTheme({
 export function App () {
     const classes = useStyles();
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
 
     const handleVolver = () => {
         navigate('/');
@@ -81,16 +86,43 @@ export function App () {
     }
 
 
+    const uploadImageAzure = async (file) => {
+        if(!file) return;
+
+        setLoading(true);
+
+        const blobServiceClient = new BlobServiceClient(`${STORAGE_URL}/?${SAS_TOKEN}`)
+        const containerClient = blobServiceClient.getContainerClient(CONTAINER_NAME);
+        const blobName = `${Date.now()}-${file.name}`;
+        const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+        try{
+            await blockBlobClient.uploadData(file, {
+                blobHTTPHeaders: { blobContentType: file.type },
+            });
+
+            const imageUrl = `${STORAGE_URL}/${CONTAINER_NAME}/${blobName}?${SAS_TOKEN}`;
+            setFormState((prevState) => ({ ...prevState, urlFoto: imageUrl}));
+            setPreviewImage(imageUrl);
+            console.log("Imagen subida con éxito: ", imageUrl);
+            console.log(blockBlobClient);
+        } catch (error) {
+            console.error("Error al cargar la imagen: ", error);
+            console.log(blockBlobClient);
+        } finally {
+            setLoading(false);
+        }
+    }
     const handleFileChange = (event) => {
         const file = event.target.files[0];
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setFormState({ ...formState, urlFoto: reader.result });  // Guarda la imagen como Base64 en formState
-        };
-        if (file) {
-          reader.readAsDataURL(file); 
+        if (file){
+            const reader = new FileReader();
+            reader.onload = () => setPreviewImage(reader.result);
+            reader.readAsDataURL(file);
+
+            uploadImageAzure(file);
         }
-      };
+    };
     return (
         <main  className={classes.main}>
             <ThemeProvider >
@@ -265,13 +297,8 @@ export function App () {
                                         item
                                     >
 
-                                        <Button
-                                            type='submit'
-                                            variant='contained'
-                                            sx={{ mt: 3, mb: 2 }}
-                                            onClick={createUser}
-                                        >
-                                            ENVIAR
+                                        <Button type='submit' variant='contained' sx={{ mt: 3, mb: 2 }} disabled={loading} onClick={createUser}>
+                                            {loading ? "Subiendo imagen..." : "ENVIAR"}
                                         </Button>
                                     </Grid>
                                 </Grid>
